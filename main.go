@@ -52,11 +52,15 @@ func main() {
 
 	r := gin.Default()
 	r.LoadHTMLGlob("templates/*")
-	r.Static("/static", "./static")
 
 	r.GET("/", indexHandler)
+	r.GET("/healthz", healthCheckHandler)
 
-	r.Run(":8080")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	r.Run(":" + port)
 }
 
 func fetchRates() {
@@ -128,5 +132,12 @@ func indexHandler(c *gin.Context) {
 	c.HTML(http.StatusOK, "index.html", gin.H{
 		"rates":      rates,
 		"updated_at": rates.UpdatedAt.Format(time.RFC3339),
+	})
+}
+
+func healthCheckHandler(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"status": "ok",
+		"time":   time.Now().Format(time.RFC3339),
 	})
 }
