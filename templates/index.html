@@ -78,16 +78,10 @@
     <p class="mt-6 text-sm text-gray-500 text-center">Last updated: <span id="lastUpdated"></span></p>
 </div>
 <script>
-    const rates = JSON.parse('{{ .rates | toJson }}'); // Convert to JSON format
+    const rates = {{ .rates }};
     const updatedAt = "{{ .updated_at }}";
 
     document.getElementById('lastUpdated').textContent = new Date(updatedAt).toLocaleString();
-
-    const currencySymbols = {
-        'JPY': '¥',
-        'INR': '₹',
-        'USD': '$'
-    };
 
     function convert(amount, from, to) {
         return amount * (rates[to] / rates[from]);
@@ -121,7 +115,7 @@
             const rate = convert(1, from, to);
             const div = document.createElement('div');
             div.className = 'px-4 py-2 text-sm text-gray-700 hover:bg-gray-200';
-            div.textContent = `${currencySymbols[from]}1 ${from} = ${currencySymbols[to]}${rate.toFixed(4)} ${to}`;
+            div.textContent = `1 ${from} = ${rate.toFixed(4)} ${to}`;
             ratesContainer.appendChild(div);
         });
     }
@@ -134,14 +128,14 @@
     const dropdownContent = document.getElementById('exchange-rates');
 
     dropdownBtn.addEventListener('click', function() {
-        dropdownContent.classList.toggle('show');
-        dropdownBtn.setAttribute('aria-expanded', dropdownContent.classList.contains('show'));
+        dropdownContent.classList.toggle('hidden');
+        dropdownBtn.setAttribute('aria-expanded', !dropdownContent.classList.contains('hidden'));
     });
 
     // Close the dropdown if clicked outside
     window.addEventListener('click', function(event) {
         if (!event.target.matches('#dropdownBtn') && !event.target.closest('#dropdownBtn') && !event.target.closest('#exchange-rates')) {
-            dropdownContent.classList.remove('show');
+            dropdownContent.classList.add('hidden');
             dropdownBtn.setAttribute('aria-expanded', 'false');
         }
     });
