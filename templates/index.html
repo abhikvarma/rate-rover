@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currency Converter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #1a2633;
+            color: #fff;
+        }
+        .input-field {
+            background-color: #2c3e50;
+            border: 1px solid #34495e;
+            color: #fff;
+            transition: all 0.3s ease;
+            font-size: 1.25rem;
+            height: 3rem;
+        }
+        .input-field:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.3);
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #2c3e50;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+        .dropdown-content.show {
+            display: block;
+        }
+        .currency-symbol {
+            font-size: 1.25rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+<div class="w-full max-w-md p-8 bg-gray-800 rounded-lg shadow-xl">
+    <h1 class="text-2xl font-bold mb-6 text-center">Currency Converter</h1>
+    <div class="space-y-4">
+        <div>
+            <label for="jpy" class="block text-sm font-medium mb-1">Japanese Yen (JPY)</label>
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 currency-symbol">¥</span>
+                <input type="text" inputmode="numeric" id="jpy" class="w-full pl-8 pr-3 py-2 rounded input-field" placeholder="Enter amount">
+            </div>
+        </div>
+        <div>
+            <label for="inr" class="block text-sm font-medium mb-1">Indian Rupee (INR)</label>
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 currency-symbol">₹</span>
+                <input type="text" inputmode="numeric" id="inr" class="w-full pl-8 pr-3 py-2 rounded input-field" placeholder="Enter amount">
+            </div>
+        </div>
+        <div>
+            <label for="usd" class="block text-sm font-medium mb-1">US Dollar (USD)</label>
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 currency-symbol">$</span>
+                <input type="text" inputmode="numeric" id="usd" class="w-full pl-8 pr-3 py-2 rounded input-field" placeholder="Enter amount">
+            </div>
+        </div>
+    </div>
+    <div class="mt-6">
+        <div class="dropdown inline-block relative">
+            <button id="dropdownBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded inline-flex items-center w-full justify-between">
+                <span>Current Exchange Rates</span>
+                <svg class="fill-current h-4 w-4 ml-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                    <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                </svg>
+            </button>
+            <div id="exchange-rates" class="dropdown-content right-0 mt-1 py-2 w-full rounded-md shadow-xl z-20">
+                <!-- Exchange rates will be inserted here -->
+            </div>
+        </div>
+    </div>
+    <p class="mt-4 text-sm text-gray-400">Last updated: <span id="lastUpdated"></span></p>
+</div>
+<script>
+    const rates = {{ .rates }};
+    const updatedAt = "{{ .updated_at }}";
+
+    document.getElementById('lastUpdated').textContent = new Date(updatedAt).toLocaleString();
+
+    const currencySymbols = {
+        'JPY': '¥',
+        'INR': '₹',
+        'USD': '$'
+    };
+
+    function convert(amount, from, to) {
+        return amount * (rates[to] / rates[from]);
+    }
+
+    function updateConversion(changedInput) {
+        const amount = parseFloat(changedInput.value);
+        const fromCurrency = changedInput.id.toUpperCase();
+
+        ['JPY', 'INR', 'USD'].forEach(toCurrency => {
+            if (toCurrency !== fromCurrency) {
+                const convertedAmount = convert(amount, fromCurrency, toCurrency);
+                document.getElementById(toCurrency.toLowerCase()).value = isNaN(convertedAmount) ? '' : convertedAmount.toFixed(2);
+            }
+        });
+    }
+
+    ['jpy', 'inr', 'usd'].forEach(currency => {
+        document.getElementById(currency).addEventListener('input', (e) => updateConversion(e.target));
+    });
+
+    function updateExchangeRates() {
+        const pairs = [
+            ['JPY', 'USD'], ['USD', 'JPY'],
+            ['JPY', 'INR'], ['INR', 'JPY'],
+            ['USD', 'INR'], ['INR', 'USD']
+        ];
+        const ratesContainer = document.getElementById('exchange-rates');
+        ratesContainer.innerHTML = '';
+        pairs.forEach(([from, to]) => {
+            const rate = convert(1, from, to);
+            const div = document.createElement('div');
+            div.className = 'px-4 py-2 text-sm text-gray-300 hover:bg-gray-700';
+            div.textContent = `${currencySymbols[from]}1 ${from} = ${currencySymbols[to]}${rate.toFixed(4)} ${to}`;
+            ratesContainer.appendChild(div);
+        });
+    }
+
+    // Initialize exchange rates
+    updateExchangeRates();
+
+    // Dropdown functionality
+    const dropdownBtn = document.getElementById('dropdownBtn');
+    const dropdownContent = document.getElementById('exchange-rates');
+
+    dropdownBtn.addEventListener('click', function() {
+        dropdownContent.classList.toggle('show');
+    });
+
+    // Close the dropdown if clicked outside
+    window.addEventListener('click', function(event) {
+        if (!event.target.matches('#dropdownBtn') && !event.target.closest('#dropdownBtn') && !event.target.closest('#exchange-rates')) {
+            dropdownContent.classList.remove('show');
+        }
+    });
+</script>
+</body>
+</html>

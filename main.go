@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	_ "github.com/joho/godotenv"
+	_ "github.com/joho/godotenv/autoload"
 )
 
 const (
@@ -19,9 +19,10 @@ const (
 )
 
 type Rates struct {
-	INR float64 `json:"INR"`
-	USD float64 `json:"USD"`
-	JPY float64 `json:"JPY"`
+	INR       float64   `json:"INR"`
+	USD       float64   `json:"USD"`
+	JPY       float64   `json:"JPY"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 var (
@@ -38,7 +39,9 @@ func main() {
 
 	loadRates()
 
-	fetchRates()
+	if rates.UpdatedAt.IsZero() || time.Since(rates.UpdatedAt) >= refresh {
+		fetchRates()
+	}
 
 	go func() {
 		ticker := time.NewTicker(refresh)
@@ -78,6 +81,7 @@ func fetchRates() {
 	ratesMutex.Lock()
 	rates = result.Rates
 	rates.USD = 1
+	rates.UpdatedAt = time.Now()
 	ratesMutex.Unlock()
 
 	fmt.Println("Rates updated:", rates)
@@ -94,7 +98,7 @@ func storeRates() {
 		return
 	}
 
-	err = os.WriteFile("rate.json", data, 0644)
+	err = os.WriteFile("rates.json", data, 0644)
 	if err != nil {
 		log.Println("Error writing rates to files:", err)
 	}
@@ -122,6 +126,7 @@ func indexHandler(c *gin.Context) {
 	ratesMutex.RLock()
 	defer ratesMutex.RUnlock()
 	c.HTML(http.StatusOK, "index.html", gin.H{
-		"rates": rates,
+		"rates":      rates,
+		"updated_at": rates.UpdatedAt.Format(time.RFC3339),
 	})
 }
