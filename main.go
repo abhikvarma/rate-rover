@@ -3,9 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -32,6 +34,12 @@ var (
 )
 
 func main() {
+	env := os.Getenv("ENV")
+	if env == "" {
+		env = "DEV"
+	}
+	hostUrl := os.Getenv("HOSTURL")
+
 	apiKey = os.Getenv("OPENEXCHANGERATES_API_KEY")
 	if apiKey == "" {
 		log.Fatal("OPENEXCHANGERATES_API_KEY env var not set :(")
@@ -50,11 +58,34 @@ func main() {
 		}
 	}()
 
+	if strings.EqualFold(env, "RENDER") && hostUrl != "" {
+		go func() {
+			ticker := time.NewTicker(14 * time.Minute)
+			for range ticker.C {
+				func() {
+					resp, err := http.Get(hostUrl + "/stay-alive")
+					if err != nil {
+						log.Println("Error in keep alive:", err)
+					}
+					defer resp.Body.Close()
+
+					bodyBytes, err := io.ReadAll(resp.Body)
+					if err != nil {
+						log.Println("Error reading resp body in keep alive", err)
+						return
+					}
+					log.Printf(string(bodyBytes))
+				}()
+			}
+		}()
+	}
+
 	r := gin.Default()
 	r.LoadHTMLGlob("templates/*")
 
 	r.GET("/", indexHandler)
 	r.GET("/healthz", healthCheckHandler)
+	r.GET("/stay-alive", stayAliveHandler)
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -140,4 +171,8 @@ func healthCheckHandler(c *gin.Context) {
 		"status": "ok",
 		"time":   time.Now().Format(time.RFC3339),
 	})
+}
+
+func stayAliveHandler(c *gin.Context) {
+	c.String(http.StatusOK, "ah ha ha ha stayin alive")
 }
