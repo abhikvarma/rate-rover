@@ -17,9 +17,9 @@
             border: none;
             color: #1d1d1f;
             transition: all 0.3s ease;
-            font-size: 2rem;
+            font-size: clamp(1rem, 4vw, 2rem);
             font-weight: 200;
-            height: 4rem;
+            height: 3rem;
         }
         .input-field:focus {
             outline: none;
@@ -27,7 +27,7 @@
             box-shadow: 0 0 0 2px rgba(0, 125, 250, 0.6);
         }
         .currency-symbol {
-            font-size: 2rem;
+            font-size: clamp(1rem, 4vw, 2rem);
             font-weight: 200;
         }
         .dropdown-content {
@@ -41,18 +41,23 @@
         .copy-icon:hover {
             color: #007AFF;
         }
+        @media (max-width: 640px) {
+            .input-field, .currency-symbol {
+                font-size: 1.25rem;
+            }
+        }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-<div class="w-full max-w-md p-8 bg-white bg-opacity-70 rounded-3xl shadow-lg backdrop-blur-md">
-    <h1 class="text-3xl font-light mb-8 text-center">Currency Converter</h1>
-    <div class="space-y-6">
+<body class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 p-4">
+<div class="w-full max-w-md p-4 sm:p-6 bg-white bg-opacity-70 rounded-3xl shadow-lg backdrop-blur-md">
+    <h1 class="text-2xl sm:text-3xl font-light mb-6 text-center">Currency Converter</h1>
+    <div class="space-y-4 sm:space-y-6">
         <div>
             <label for="jpy" class="block text-sm font-medium mb-1 text-gray-600">Japanese Yen (JPY)</label>
             <div class="relative flex items-center">
                 <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 currency-symbol">¥</span>
-                <input type="text" inputmode="decimal" id="jpy" class="w-full pl-10 pr-12 py-2 rounded-xl input-field" placeholder="0">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 absolute right-3 copy-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-copy-target="jpy">
+                <input type="text" inputmode="decimal" id="jpy" class="w-full pl-8 pr-10 py-2 rounded-xl input-field" placeholder="0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute right-3 copy-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-copy-target="jpy">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
             </div>
@@ -61,8 +66,8 @@
             <label for="inr" class="block text-sm font-medium mb-1 text-gray-600">Indian Rupee (INR)</label>
             <div class="relative flex items-center">
                 <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 currency-symbol">₹</span>
-                <input type="text" inputmode="decimal" id="inr" class="w-full pl-10 pr-12 py-2 rounded-xl input-field" placeholder="0">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 absolute right-3 copy-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-copy-target="inr">
+                <input type="text" inputmode="decimal" id="inr" class="w-full pl-8 pr-10 py-2 rounded-xl input-field" placeholder="0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute right-3 copy-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-copy-target="inr">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
             </div>
@@ -71,14 +76,14 @@
             <label for="usd" class="block text-sm font-medium mb-1 text-gray-600">US Dollar (USD)</label>
             <div class="relative flex items-center">
                 <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400 currency-symbol">$</span>
-                <input type="text" inputmode="decimal" id="usd" class="w-full pl-10 pr-12 py-2 rounded-xl input-field" placeholder="0">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 absolute right-3 copy-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-copy-target="usd">
+                <input type="text" inputmode="decimal" id="usd" class="w-full pl-8 pr-10 py-2 rounded-xl input-field" placeholder="0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute right-3 copy-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-copy-target="usd">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
             </div>
         </div>
     </div>
-    <div class="mt-8">
+    <div class="mt-6">
         <div class="dropdown inline-block relative w-full">
             <button id="dropdownBtn" aria-haspopup="true" aria-expanded="false" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-xl inline-flex items-center w-full justify-between transition duration-300 ease-in-out">
                 <span>Current Exchange Rates</span>
@@ -91,7 +96,7 @@
             </div>
         </div>
     </div>
-    <p class="mt-6 text-sm text-gray-500 text-center">Last updated: <span id="lastUpdated"></span></p>
+    <p class="mt-4 text-sm text-gray-500 text-center">Last updated: <span id="lastUpdated"></span></p>
 </div>
 <script>
     const rates = {{ .rates }};
