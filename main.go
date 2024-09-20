@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -28,9 +29,10 @@ type Rates struct {
 }
 
 var (
-	rates      Rates
-	ratesMutex sync.RWMutex
-	apiKey     string
+	rates           Rates
+	ratesMutex      sync.RWMutex
+	apiKey          string
+	fixedJPYINRRate float64
 )
 
 func main() {
@@ -43,6 +45,14 @@ func main() {
 	apiKey = os.Getenv("OPENEXCHANGERATES_API_KEY")
 	if apiKey == "" {
 		log.Fatal("OPENEXCHANGERATES_API_KEY env var not set :(")
+	}
+
+	fixedRateStr := os.Getenv("FIXED_JPY_INR_RATE")
+	var err error
+	fixedJPYINRRate, err = strconv.ParseFloat(fixedRateStr, 64)
+	if err != nil {
+		log.Printf("Error parsing FIXED_JPY_INR_RATE, using default value of 0.61: %v", err)
+		fixedJPYINRRate = 0.61
 	}
 
 	loadRates()
@@ -161,8 +171,9 @@ func indexHandler(c *gin.Context) {
 	ratesMutex.RLock()
 	defer ratesMutex.RUnlock()
 	c.HTML(http.StatusOK, "index.html", gin.H{
-		"rates":      rates,
-		"updated_at": rates.UpdatedAt.Format(time.RFC3339),
+		"rates":              rates,
+		"updated_at":         rates.UpdatedAt.Format(time.RFC3339),
+		"fixed_jpy_inr_rate": fixedJPYINRRate,
 	})
 }
 

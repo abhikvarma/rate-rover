@@ -46,6 +46,45 @@
                 font-size: 1.25rem;
             }
         }
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .toggle-slider {
+            background-color: #2196F3;
+        }
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 p-4">
@@ -96,15 +135,32 @@
             </div>
         </div>
     </div>
+    <div class="mt-4 flex items-center justify-between">
+        <div>
+            <label for="fixedRateToggle" class="text-sm text-gray-600">Use fixed JPY-INR rate:</label>
+            <span id="fixedRateDisplay" class="text-sm text-gray-600 ml-2"></span>
+        </div>
+        <label class="toggle-switch">
+            <input type="checkbox" id="fixedRateToggle" checked>
+            <span class="toggle-slider"></span>
+        </label>
+    </div>
     <p class="mt-4 text-sm text-gray-500 text-center">Last updated: <span id="lastUpdated"></span></p>
 </div>
 <script>
     const rates = {{ .rates }};
     const updatedAt = "{{ .updated_at }}";
+    const fixedJPYINRRate = {{ .fixed_jpy_inr_rate }};
 
     document.getElementById('lastUpdated').textContent = new Date(updatedAt).toLocaleString();
+    document.getElementById('fixedRateDisplay').textContent = `(${fixedJPYINRRate.toFixed(4)})`;
 
-    function convert(amount, from, to) {
+    function convert(amount, from, to, ignoreFixedRate = true) {
+        if (ignoreFixedRate === false &&
+            document.getElementById('fixedRateToggle').checked &&
+            ((from === 'JPY' && to === 'INR') || (from === 'INR' && to === 'JPY'))) {
+            return from === 'JPY' ? amount * fixedJPYINRRate : amount / fixedJPYINRRate;
+        }
         return amount * (rates[to] / rates[from]);
     }
 
@@ -114,7 +170,7 @@
 
         ['JPY', 'INR', 'USD'].forEach(toCurrency => {
             if (toCurrency !== fromCurrency) {
-                const convertedAmount = convert(amount, fromCurrency, toCurrency);
+                const convertedAmount = convert(amount, fromCurrency, toCurrency, false);
                 document.getElementById(toCurrency.toLowerCase()).value = isNaN(convertedAmount) ? '' :
                     convertedAmount.toLocaleString(undefined, {
                         minimumFractionDigits: 2,
@@ -128,6 +184,13 @@
         document.getElementById(currency).addEventListener('input', (e) => updateConversion(e.target));
     });
 
+    document.getElementById('fixedRateToggle').addEventListener('change', function() {
+        if (!this.checked) {
+            document.getElementById('jpy').value = '1';
+        }
+        updateConversion(document.getElementById('jpy'));
+    });
+
     function updateExchangeRates() {
         const pairs = [
             ['JPY', 'USD'], ['USD', 'JPY'],
@@ -137,7 +200,7 @@
         const ratesContainer = document.getElementById('exchange-rates');
         ratesContainer.innerHTML = '';
         pairs.forEach(([from, to]) => {
-            const rate = convert(1, from, to);
+            const rate = convert(1, from, to, true);
             const div = document.createElement('div');
             div.className = 'px-4 py-2 text-sm text-gray-700 hover:bg-gray-200';
             div.textContent = `1 ${from} = ${rate.toFixed(4)} ${to}`;
